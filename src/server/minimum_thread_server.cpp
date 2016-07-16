@@ -133,7 +133,7 @@ void mjlss::minimum_thread_server::_sockets_reader_method() {
         __LINE__,
         "READER: data available, selecting accepted connection",
         mjlst::log_level::debug);
-    const mjlsm::socket* selected_socket =
+    mjlsm::socket* selected_socket =
         _connections.get_first_selected_socket(read_socket_fds);
     if (!selected_socket) {
       _logger.to_ostream(std::clog,
@@ -158,6 +158,8 @@ void mjlss::minimum_thread_server::_sockets_reader_method() {
           "closing socket '" + selected_socket->to_string() + "'",
           mjlst::log_level::error);
       _connections.erase(selected_socket->get_socket_fd());
+      selected_socket->close();
+      delete selected_socket;
       continue;
     }
 

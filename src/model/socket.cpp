@@ -192,3 +192,25 @@ mjlsm::socket::to_string() const {
   return oss.str();
 }
 
+void
+mjlsm::socket::close() {
+  if (_socket_fd == -1) {
+    _logger.to_ostream(
+        std::cerr,
+        __FILE__,
+        __LINE__,
+        "trying to close a socket which has _socket_fd=-1",
+        mjlst::log_level::error);
+    return;
+  }
+  ::close(_socket_fd);
+  _logger.to_ostream(
+      std::clog,
+      __FILE__,
+      __LINE__,
+      "'" + to_string() + "' closed OK",
+      mjlst::log_level::debug);
+  _socket_fd = -1;
+}
+
+
