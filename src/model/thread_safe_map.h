@@ -57,6 +57,7 @@ mjlsm::thread_safe_map<T>::get_select_info(fd_set& my_set) const {
   std::unique_lock<std::mutex> my_lock(_mutex);
   _condition.wait(my_lock,[this]{return !_internal_map.empty();});
   int max_fd = 0;
+  FD_ZERO(&my_set);
   for (auto& kv: _internal_map) {
     FD_SET(kv.first, &my_set);
     if (kv.first > max_fd)
