@@ -14,7 +14,7 @@ mjlst::logger::to_ostream(
     log_level level) const {
     if (level >= _log_level_threshold)
         my_ostream << filename << "::"
-                   << __LINE__ << " --> "
+                   << line_number << " --> "
                    << msg
                    << std::endl;
 }
