@@ -34,3 +34,8 @@
 
 # build paths
 build/
+/GPATH
+/GRTAGS
+/GTAGS
+/.cproject
+/.project

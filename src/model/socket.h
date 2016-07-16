@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include <arpa/inet.h>
@@ -10,13 +11,15 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include "../tools/logger.h"
+
 namespace mjl {
 namespace sockets {
 namespace model {
 
     class socket {
     public:
-        socket();
+        socket(const mjl::sockets::tools::logger&);
 
         /// server methods
         int accept(socket&);
@@ -27,14 +30,18 @@ namespace model {
 
         void close();
 
+        /// I/O operations
+        std::string read_data() const;
+
         /// getters
         int get_socket_fd() const;
+        std::string to_string() const;
 
         /// setters
         void set_socket_fd(int);
         void set_peer_ip(const std::string&);
     private:
-
+        const mjl::sockets::tools::logger& _logger;
         int _socket_fd;
 
         std::string _local_ip;

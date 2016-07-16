@@ -1,18 +1,22 @@
 #include "socket.h"
 
 namespace mjlsm = mjl::sockets::model;
+namespace mjlst = mjl::sockets::tools;
 
-mjlsm::socket::socket()
-    :_socket_fd(-1)
+mjlsm::socket::socket(const mjlst::logger& logger)
+    : _logger(logger),
+      _socket_fd(-1)
 {}
 
 int
 mjlsm::socket::bind(const std::string& port) {
     if (_socket_fd != -1) {
-        std::cerr << __FILE__ << "::" << __func__
-                      << "::" << __LINE__ << " --> "
-                      << "socket already binded!!"
-                      << std::endl;
+        _logger.to_ostream(
+            std::cerr,
+            __FILE__,
+            __LINE__,
+            "socket already binded!!",
+            mjlst::log_level::error);
         return -1;
     }
 
@@ -27,10 +31,12 @@ mjlsm::socket::bind(const std::string& port) {
         getaddrinfo(nullptr, port.c_str(), &hints, &addresses_returned);
 
     if (get_addr_result) {
-        std::cerr << __FILE__ << "::" << __func__
-                      << "::" << __LINE__ << " --> "
-                      << "getaddrinfo error '" << get_addr_result << "'"
-                      << std::endl;
+        _logger.to_ostream(
+            std::cerr,
+            __FILE__,
+            __LINE__,
+            "getaddrinfo error '" + std::to_string(get_addr_result) + "'",
+            mjlst::log_level::error);
         return get_addr_result;
     }
 
@@ -94,10 +100,12 @@ mjlsm::socket::bind(const std::string& port) {
 int
 mjlsm::socket::accept(mjlsm::socket& socket) {
     if (_socket_fd == -1) {
-        std::cerr << __FILE__ << "::" << __func__
-                      << "::" << __LINE__ << " --> "
-                      << "socket is not binded!!"
-                      << std::endl;
+        _logger.to_ostream(
+            std::cerr,
+            __FILE__,
+            __LINE__,
+            "socket is not binded!!",
+            mjlst::log_level::error);
         return -1;
     }
     errno = 0;
@@ -107,10 +115,12 @@ mjlsm::socket::accept(mjlsm::socket& socket) {
         ::accept(_socket_fd, &peer_address, &peer_address_length);
     if (accept_result == -1) {
         const int errno_cpy = errno;
-        std::cerr << __FILE__ << "::" << __func__
-                  << "::" << __LINE__ << " --> "
-                  << "error in accept, errno='" << errno_cpy << "'"
-                  << std::endl;
+        _logger.to_ostream(
+            std::cerr,
+            __FILE__,
+            __LINE__,
+            "error in accept, errno='" + std::to_string(errno_cpy) + "'",
+            mjlst::log_level::error);
         return errno_cpy;
     }
     in_addr& peer_inet_address = (in_addr&)peer_address;
@@ -128,3 +138,57 @@ mjlsm::socket::set_socket_fd(int i) {_socket_fd = i;}
 
 int
 mjlsm::socket::get_socket_fd() const {return _socket_fd;}
+
+std::string
+mjlsm::socket::read_data() const {
+  std::string read_data;
+  if (_socket_fd == -1) {
+    _logger.to_ostream(
+        std::cerr,
+        __FILE__,
+        __LINE__,
+        "cannot read data from socket, fd is -1",
+        mjlst::log_level::error);
+    return read_data;
+  }
+  _logger.to_ostream(
+      std::clog,
+      __FILE__,
+      __LINE__,
+      "socket='" + std::to_string(_socket_fd) + "', starting to read...",
+      mjlst::log_level::debug);
+  const size_t max_read_size = 1024;
+  read_data.resize(max_read_size);
+  errno = 0;
+  ssize_t recv_result = recv(_socket_fd, &read_data[0], max_read_size, 0);
+  if (recv_result == -1) {
+    const int errno_cpy = errno;
+    _logger.to_ostream(
+        std::cerr,
+        __FILE__,
+        __LINE__,
+        "socket='" + std::to_string(_socket_fd) + "', error in read, errno='" +
+          std::to_string(errno_cpy) + "', read_data='" + read_data + "'",
+        mjlst::log_level::error);
+    return read_data;
+  }
+  read_data.resize(static_cast<size_t>(recv_result));
+  _logger.to_ostream(
+      std::clog,
+      __FILE__,
+      __LINE__,
+      "socket='" + std::to_string(_socket_fd) + "', read OK msg='" +
+        read_data + "' (" + std::to_string(read_data.size()) + " bytes)",
+      mjlst::log_level::debug);
+  return read_data;
+}
+
+std::string
+mjlsm::socket::to_string() const {
+  std::ostringstream oss;
+  oss << "[socket][_socket_fd=" << _socket_fd << "][_local_ip=" << _local_ip
+      << "][_local_port=" << _local_port << "][_peer_ip=" << _peer_ip
+      << "][_peer_port=" << _peer_port << "]";
+  return oss.str();
+}
+
