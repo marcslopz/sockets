@@ -43,14 +43,26 @@ mjlsm::socket::bind(const std::string& port) {
     std::clog << __FILE__ << "::" << __func__
               << "::" << __LINE__ << " --> "
               << "getaddrinfo ok: addresses [";
-    for (const addrinfo* address = addresses_returned; address; address = address->ai_next) {
-        const in_addr* const inet_address = (const in_addr* const)(address->ai_addr);
-        char* inet_address_c_str = inet_ntoa(*inet_address);
-        std::clog << inet_address_c_str << ", ";
+    for (const addrinfo* address = addresses_returned;
+        address;
+        address = address->ai_next) {
+      const socklen_t inet_address_str_length = 128;
+      char inet_address_c_str[inet_address_str_length];
+      getnameinfo(
+          address->ai_addr,
+          address->ai_addrlen,
+          inet_address_c_str,
+          inet_address_str_length,
+          nullptr,
+          0,
+          0);
+      std::clog << inet_address_c_str << ", ";
     }
     std::clog << "]" << std::endl;
 
-    for (const addrinfo* address = addresses_returned; address; address = address->ai_next) {
+    for (const addrinfo* address = addresses_returned;
+        address;
+        address = address->ai_next) {
         std::clog << __FILE__ << "::" << __func__
                   << "::" << __LINE__ << " --> "
                   << "trying to bind address '";
@@ -131,9 +143,17 @@ mjlsm::socket::accept(mjlsm::socket& socket) {
             mjlst::log_level::error);
         return errno_cpy;
     }
-    in_addr& peer_inet_address = (in_addr&)peer_address;
-    const std::string inet_address_str = inet_ntoa(peer_inet_address);
-    socket.set_peer_ip(inet_address_str);
+    socklen_t inet_address_str_length = 128;
+    char inet_address_c_str[inet_address_str_length];
+    getnameinfo(
+        &peer_address,
+        peer_address_length,
+        inet_address_c_str,
+        inet_address_str_length,
+        nullptr,
+        0,
+        0);
+    socket.set_peer_ip(inet_address_c_str);
     socket.set_socket_fd(accept_result);
     return 0;
 }

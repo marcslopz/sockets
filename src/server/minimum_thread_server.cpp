@@ -94,19 +94,6 @@ void mjlss::minimum_thread_server::_sockets_reader_method() {
       "READER: starting reader thread",
       mjlst::log_level::debug);
   while (true) {
-//    if (_connections.empty()) {
-//      auto incoming_connection_future =
-//          _incoming_connection_promise.get_future();
-//      /// wait for new connection
-//      _logger.to_ostream(
-//          std::clog,
-//          __FILE__,
-//          __LINE__,
-//          "READER: empty accepted connections, waiting for incoming connection",
-//          mjlst::log_level::debug);
-//      incoming_connection_future.get();
-//    }
-
     _logger.to_ostream(
         std::clog,
         __FILE__,
