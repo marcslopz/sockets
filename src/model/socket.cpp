@@ -54,8 +54,16 @@ mjlsm::socket::bind(const std::string& port) {
         std::clog << __FILE__ << "::" << __func__
                   << "::" << __LINE__ << " --> "
                   << "trying to bind address '";
-        const in_addr* const inet_address = (const in_addr* const)(address->ai_addr);
-        char* inet_address_c_str = inet_ntoa(*inet_address);
+        socklen_t inet_address_str_length = 128;
+        char inet_address_c_str[inet_address_str_length];
+        getnameinfo(
+            address->ai_addr,
+            address->ai_addrlen,
+            inet_address_c_str,
+            inet_address_str_length,
+            nullptr,
+            0,
+            0);
         std::clog << inet_address_c_str << "'....";
 
         const int socket_result =
